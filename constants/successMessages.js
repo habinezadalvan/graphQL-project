@@ -1,0 +1,1 @@
+export const SUCCESS_USER_CREATION = "User was created successfully";
