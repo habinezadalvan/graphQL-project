@@ -1,0 +1,9 @@
+const path = require('path');
+
+
+module.exports = {
+    "config": path.resolve('./seka/config', 'config.js'),
+    "models-path": path.resolve('./seka/models'),
+    "seeders-path": path.resolve('./seka/seeders'),
+    "migrations-path": path.resolve('./seka/migrations'),
+}

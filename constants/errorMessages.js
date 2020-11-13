@@ -1,0 +1,10 @@
+export const MISSING_INVALID_FIELDS = 'Please fill the missing or invalid fields';
+export const EMAIL_EXIST = "Email already in use.";
+export const INCORRECT_USER = "Incorrect email or password";
+export const TOKEN_REQUIRED = 'Token is required';
+export const INVALID_TOKEN = 'Invalid token';
+export const REQUIRED_FIELDS = 'Please fill all the required fields';
+export const UPLOAD_FILE = 'Please upload a file';
+export const EMPTY_SHEET = 'The sheet you are trying to upload might be empty, please cross check.';
+export const NOT_FOUND = "User not found";
+export const SERVER_ERROR = 'Server error';
