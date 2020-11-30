@@ -26,8 +26,14 @@ module.exports = {
       is_featured: {
         type: Sequelize.BOOLEAN,
       },
-      category: {
-        type: Sequelize.STRING,
+      categoryId: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: "Categories",
+          key: "id",
+          as: "categoryId",
+          onDelete: "CASCADE",
+        },
       },
       registerId: {
         type: Sequelize.INTEGER,

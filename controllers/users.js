@@ -18,7 +18,7 @@ import { SUCCESS_USER_CREATION } from "../constants/successMessages";
 import { findUser } from "../utils/user";
 
 export default class User {
-  static async signUp(req, res) {
+  static async createUser(req, res) {
     try {
       const { username, email, password: passcode, role } = req.body;
       const user = await db.User.findOne({ where: { email }, raw: true });
@@ -40,7 +40,11 @@ export default class User {
 
       const data = await db.User.create(dataToSave);
 
-      const token = await generateToken({ id: data.id, email: data.email });
+      const token = await generateToken({
+        id: data.id,
+        email: data.email,
+        role: data.role,
+      });
 
       res.setHeader("Authorization", `Bearer ${token}`);
 
@@ -77,7 +81,12 @@ export default class User {
           message: INCORRECT_USER,
         });
       }
-      const token = await generateToken({ id: user.id, email: user.email });
+
+      const token = await generateToken({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      });
 
       res.setHeader("Authorization", `Bearer ${token}`);
 

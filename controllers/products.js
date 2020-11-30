@@ -1,24 +1,34 @@
-import xlsx from 'xlsx';
-import db from '../seka/models';
-import { REQUIRED_FIELDS } from '../constants/errorMessages';
-import * as constants from '../constants/statusCodes';
-import { HTTP_BAD_REQUEST, HTTP_NOT_FOUND } from '../constants/statusCodes';
-import { NOT_FOUND, EMPTY_SHEET, UPLOAD_FILE } from '../constants/errorMessages';
+import xlsx from "xlsx";
+import db from "../seka/models";
+import { REQUIRED_FIELDS } from "../constants/errorMessages";
+import * as constants from "../constants/statusCodes";
+import { HTTP_BAD_REQUEST, HTTP_NOT_FOUND } from "../constants/statusCodes";
+import {
+  NOT_FOUND,
+  EMPTY_SHEET,
+  PRODUCT_NOT_FOUND,
+  UPLOAD_FILE,
+} from "../constants/errorMessages";
+import { uploadFile } from "../middleware/imageUpload";
+import { fetchProduct } from "../utils/products";
+import { SUCCESSFUL_UPDATE_PRODUCT } from "../constants/successMessages";
 
 /**
  * @description Upload excel file class
  * @returns {object} uploaded file
  */
 class Products {
-
   /**
    * @description Upload excel file function
    * @param {object} req request from the user
    * @param {object} res response to the user
    * @returns {object} uploaded file
    */
-  static async uploadFile(req, res ) {
-    const uploadingUser = await db.User.findOne({ where: { id: req.user.id }, raw: true });
+  static async uploadFile(req, res) {
+    const uploadingUser = await db.User.findOne({
+      where: { id: req.user.id },
+      raw: true,
+    });
 
     if (!uploadingUser) {
       return res.status(constants.HTTP_NOT_FOUND).json({
@@ -49,7 +59,7 @@ class Products {
       return res.status(200).json({
         status: 200,
         sheets: sheetnames,
-        massage: 'Please select a sheet to upload',
+        massage: "Please select a sheet to upload",
       });
     }
     if (sheet) sheetToUpload = sheet;
@@ -65,13 +75,23 @@ class Products {
       });
     }
 
-    const columns = Object.keys(data[0]).map((v) => v.toLowerCase().trim().replace(/[ ]/g, ''));
+    const columns = Object.keys(data[0]).map((v) =>
+      v.toLowerCase().trim().replace(/[ ]/g, "")
+    );
 
     const err = [];
 
     // the remaining is to make add all possible essential fields
 
-    const validInput = ['title', 'description', 'price', 'image', 'number_of_sales', 'is_featured', 'category'];
+    const validInput = [
+      "title",
+      "description",
+      "price",
+      "image",
+      "number_of_sales",
+      "is_featured",
+      // "categoryId",
+    ];
 
     for (const input of validInput) {
       if (!columns.includes(input.toLowerCase())) {
@@ -89,9 +109,9 @@ class Products {
 
     const sheetData = [];
     data.map(async (info) => {
-      const row = {} ;
+      const row = {};
       Object.keys(info).forEach((key) => {
-        row[key.toLowerCase().trim().replace(/[ ]/g, '')] = info[key];
+        row[key.toLowerCase().trim().replace(/[ ]/g, "")] = info[key];
       });
       sheetData.push(row);
     });
@@ -104,11 +124,51 @@ class Products {
 
     // the remaining is to update the object with eventId
 
-    const result = await db.Product.bulkCreate(sheetData.map((record) => ({ ...record, registerId: req.user.id })));
+    const result = await db.Product.bulkCreate(
+      sheetData.map((record) => ({ ...record, registerId: req.user.id }))
+    );
 
     return res.status(200).json({
-      message: 'File uploaded successfully',
+      message: "File uploaded successfully",
       result,
+    });
+  }
+  static async addProduct(req, res) {
+    try {
+      const image = uploadFile();
+      const product = await db.Product.create({
+        ...req.body,
+        image,
+      });
+
+      console.log("product", product);
+    } catch (err) {
+      console.log(err);
+
+      return res.status(500).json({
+        status: HTTP_SERVER_ERROR,
+        err: SERVER_ERROR,
+      });
+    }
+  }
+
+  static async updateProduct(req, res) {
+    const { productId } = req.params;
+    await fetchProduct(productId);
+
+    const image = uploadFile();
+
+    const [_, value] = await db.Product.update(
+      {
+        ...req.body,
+        image,
+      },
+      { where: { id: productId }, returning: true }
+    );
+    return res.status(HTTP_OK).json({
+      status: HTTP_OK,
+      message: SUCCESSFUL_UPDATE_PRODUCT,
+      value,
     });
   }
 }

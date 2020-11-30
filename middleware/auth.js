@@ -1,7 +1,6 @@
 import { INVALID_TOKEN, TOKEN_REQUIRED } from '../constants/errorMessages';
 import { HTTP_UNAUTHORIZED } from '../constants/statusCodes';
 import {decode} from '../helpers/authHelpers';
-import db from '../seka/models';
 import {checkUser} from '../utils/user';
 
 
@@ -18,11 +17,12 @@ let token = req.header('x-access-token') || req.header('Authorization');
   }
   try {
     const decoded = decode(token);
-    const { id, email } = decoded;
+    const { id, email, role } = decoded;
     checkUser(email);
     req.user = {
         id,
-        email
+        email,
+        role
     };
     return next();
   } catch (err) {
